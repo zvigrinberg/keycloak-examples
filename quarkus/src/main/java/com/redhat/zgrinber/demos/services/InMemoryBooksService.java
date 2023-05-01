@@ -4,16 +4,20 @@ import com.redhat.zgrinber.demos.model.BookModel;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Named;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.Instant;
+import java.util.*;
 
 //favour @ApplicationScoped over @Singleton, So the Service bean will be created lazily and not eagerly.
 @ApplicationScoped
 @Named("InMemoryBooksService")
 public class InMemoryBooksService implements BooksService {
-    private final Map<String,BookModel> booksDatabase = new HashMap<>();
+    private final static Map<String,BookModel> booksDatabase;
+
+    static
+    {
+        booksDatabase = new HashMap<>();
+        booksDatabase.put("test",new BookModel("test","test-book","Comedy",250,"John Doe",60,new Date(84,0,4)));
+    }
     @Override
     public BookModel getBook(String bookId) {
 

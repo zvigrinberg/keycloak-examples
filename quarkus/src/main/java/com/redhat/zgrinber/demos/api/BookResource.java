@@ -18,7 +18,7 @@ import java.util.List;
 
 @ApplicationScoped
 @Path("/api/books")
-@Authenticated
+
 public class BookResource {
     private static final Logger LOG = Logger.getLogger(BookResource.class);
     @Inject
@@ -28,6 +28,7 @@ public class BookResource {
     protected BooksService getBooksService;
 
     @GET
+    @Authenticated
     public List<BookModel> getAll() {
         return getBooksService.getAllBooks();
     }
@@ -36,6 +37,7 @@ public class BookResource {
     public BookModel getOne(@PathParam("id") String id) {
         return getBooksService.getBook(id);
     }
+    @Authenticated
     @POST
     public Response CreateOne(@RequestBody @Valid BookModel book) {
             Response result;
