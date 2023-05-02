@@ -1,0 +1,96 @@
+{
+  "allowRemoteResourceManagement": true,
+  "policyEnforcementMode": "ENFORCING",
+  "resources": [
+    {
+      "name": "book",
+      "ownerManagedAccess": true,
+      "displayName": "book",
+      "attributes": {},
+      "_id": "f2b44338-9f5b-44d8-ac09-0f4e79af157f",
+      "uris": [
+        "/api/books"
+      ],
+      "scopes": [
+        {
+          "name": "read"
+        },
+        {
+          "name": "write"
+        }
+      ],
+      "icon_uri": ""
+    }
+  ],
+  "policies": [
+    {
+      "id": "95081d6e-47ed-454b-8eb0-1291539f8cc6",
+      "name": "write_book",
+      "description": "write_book",
+      "type": "role",
+      "logic": "POSITIVE",
+      "decisionStrategy": "UNANIMOUS",
+      "config": {
+        "roles": "[{\"id\":\"quarkus-app/write_book\",\"required\":true}]"
+      }
+    },
+    {
+      "id": "778557f1-e4c3-48d9-b039-1de6ad3bff10",
+      "name": "read_book",
+      "description": "",
+      "type": "role",
+      "logic": "POSITIVE",
+      "decisionStrategy": "UNANIMOUS",
+      "config": {
+        "roles": "[{\"id\":\"quarkus-app/read_book\",\"required\":false}]"
+      }
+    },
+    {
+      "id": "f861b8cc-e359-43de-b5e7-1133a1350d5f",
+      "name": "write_book_permissions",
+      "description": "write_book_permissions",
+      "type": "scope",
+      "logic": "POSITIVE",
+      "decisionStrategy": "AFFIRMATIVE",
+      "config": {
+        "resources": "[\"book\"]",
+        "scopes": "[\"write\",\"read\"]",
+        "applyPolicies": "[\"write_book\"]"
+      }
+    },
+    {
+      "id": "cd1f2913-56bd-4792-bb6f-33fe5291bb5b",
+      "name": "read_book_permission",
+      "description": "read_book_permission",
+      "type": "scope",
+      "logic": "POSITIVE",
+      "decisionStrategy": "UNANIMOUS",
+      "config": {
+        "resources": "[\"book\"]",
+        "scopes": "[\"read\"]",
+        "applyPolicies": "[\"read_book\"]"
+      }
+    }
+  ],
+  "scopes": [
+    {
+      "id": "0ce89560-f539-46d6-bfcb-92f6525a29b0",
+      "name": "read_book",
+      "iconUri": "",
+      "displayName": "read_book"
+    },
+    {
+      "id": "a74febdf-7aca-4f6a-94e4-513efc872929",
+      "name": "read",
+      "iconUri": "",
+      "displayName": "read"
+    },
+    {
+      "id": "4b30f007-4949-455d-95a6-6d546796e73d",
+      "name": "write",
+      "iconUri": "",
+      "displayName": "write"
+    }
+  ],
+  "decisionStrategy": "AFFIRMATIVE"
+}
