@@ -400,6 +400,83 @@
 			"response": []
 		},
 		{
+			"name": "Client Get RPT Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.collectionVariables.set(\"RPT_TOKEN\", jsonData.access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{ACCESS_TOKEN_ADMIN}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "urn:ietf:params:oauth:grant-type:uma-ticket",
+							"type": "text"
+						},
+						{
+							"key": "audience",
+							"value": "quarkus-app",
+							"type": "text"
+						},
+						{
+							"key": "response_mode",
+							"value": "decision",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "permission",
+							"value": "book#write",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "permission",
+							"value": "book#read",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "http://{{KeyCloak_Address}}:{{keyCloakServerPort}}/realms/{{realm}}/protocol/openid-connect/token",
+					"protocol": "http",
+					"host": [
+						"{{KeyCloak_Address}}"
+					],
+					"port": "{{keyCloakServerPort}}",
+					"path": [
+						"realms",
+						"{{realm}}",
+						"protocol",
+						"openid-connect",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Client Get Permissions List Specific Permission and Scope Negative unauthorized 403",
 			"request": {
 				"auth": {
@@ -451,6 +528,60 @@
 						"protocol",
 						"openid-connect",
 						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Introspect a RPT Token",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "{{clientSecret}}",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "{{clientId}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "token_type_hint",
+							"value": "requesting_party_token",
+							"type": "text"
+						},
+						{
+							"key": "token",
+							"value": "{{RPT_TOKEN}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://{{KeyCloak_Address}}:{{keyCloakServerPort}}/realms/{{realm}}/protocol/openid-connect/token/introspect",
+					"protocol": "http",
+					"host": [
+						"{{KeyCloak_Address}}"
+					],
+					"port": "{{keyCloakServerPort}}",
+					"path": [
+						"realms",
+						"{{realm}}",
+						"protocol",
+						"openid-connect",
+						"token",
+						"introspect"
 					]
 				}
 			},
@@ -521,6 +652,10 @@
 		},
 		{
 			"key": "ACCESS_TOKEN_ADMIN",
+			"value": ""
+		},
+		{
+			"key": "RPT_TOKEN",
 			"value": ""
 		}
 	]
