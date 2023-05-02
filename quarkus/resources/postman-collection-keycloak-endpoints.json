@@ -1,0 +1,527 @@
+{
+	"info": {
+		"_postman_id": "532936b0-9c7b-4206-bcdd-1c8753df5eeb",
+		"name": "Quarkus Keycloak Demo",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "KeyCloak Get Token using password grant type and client authentication - Unprivileged user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.collectionVariables.set(\"ACCESS_TOKEN\", \"Bearer  \" + jsonData.access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "secret",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "quarkus-app",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "content-type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "{{userRead}}",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "{{userReadPassword}}",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "password",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://{{KeyCloak_Address}}:{{keyCloakServerPort}}/realms/{{realm}}/protocol/openid-connect/token",
+					"protocol": "http",
+					"host": [
+						"{{KeyCloak_Address}}"
+					],
+					"port": "{{keyCloakServerPort}}",
+					"path": [
+						"realms",
+						"{{realm}}",
+						"protocol",
+						"openid-connect",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "KeyCloak Get Token using password grant type and client authentication - admin user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.collectionVariables.set(\"ACCESS_TOKEN_ADMIN\", \"Bearer  \" + jsonData.access_token);",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "secret",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "quarkus-app",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "content-type",
+						"value": "application/x-www-form-urlencoded"
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic cXVhcmt1cy1hcHA6c2VjcmV0"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "{{userAdmin}}",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "{{userAdminPassword}}",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "password",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://{{KeyCloak_Address}}:{{keyCloakServerPort}}/realms/{{realm}}/protocol/openid-connect/token",
+					"protocol": "http",
+					"host": [
+						"{{KeyCloak_Address}}"
+					],
+					"port": "{{keyCloakServerPort}}",
+					"path": [
+						"realms",
+						"{{realm}}",
+						"protocol",
+						"openid-connect",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Client Get Permissions List",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.environment.set(\"variable_key\", \"variable_value\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{ACCESS_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "urn:ietf:params:oauth:grant-type:uma-ticket",
+							"type": "text"
+						},
+						{
+							"key": "audience",
+							"value": "{{clientId}}",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{clientId}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{clientSecret}}",
+							"type": "text"
+						},
+						{
+							"key": "response_mode",
+							"value": "permissions",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://{{KeyCloak_Address}}:{{keyCloakServerPort}}/realms/{{realm}}/protocol/openid-connect/token",
+					"protocol": "http",
+					"host": [
+						"{{KeyCloak_Address}}"
+					],
+					"port": "{{keyCloakServerPort}}",
+					"path": [
+						"realms",
+						"{{realm}}",
+						"protocol",
+						"openid-connect",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Client Get Permissions List Admin",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{ACCESS_TOKEN_ADMIN}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "urn:ietf:params:oauth:grant-type:uma-ticket",
+							"type": "text"
+						},
+						{
+							"key": "audience",
+							"value": "quarkus-app",
+							"type": "text"
+						},
+						{
+							"key": "response_mode",
+							"value": "permissions",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://{{KeyCloak_Address}}:{{keyCloakServerPort}}/realms/{{realm}}/protocol/openid-connect/token",
+					"protocol": "http",
+					"host": [
+						"{{KeyCloak_Address}}"
+					],
+					"port": "{{keyCloakServerPort}}",
+					"path": [
+						"realms",
+						"{{realm}}",
+						"protocol",
+						"openid-connect",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Client Get Permissions List Admin Decision true 200",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{ACCESS_TOKEN_ADMIN}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "urn:ietf:params:oauth:grant-type:uma-ticket",
+							"type": "text"
+						},
+						{
+							"key": "audience",
+							"value": "quarkus-app",
+							"type": "text"
+						},
+						{
+							"key": "response_mode",
+							"value": "decision",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://{{KeyCloak_Address}}:{{keyCloakServerPort}}/realms/{{realm}}/protocol/openid-connect/token",
+					"protocol": "http",
+					"host": [
+						"{{KeyCloak_Address}}"
+					],
+					"port": "{{keyCloakServerPort}}",
+					"path": [
+						"realms",
+						"{{realm}}",
+						"protocol",
+						"openid-connect",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Client Get t Specific Permission and Scope Positive",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{ACCESS_TOKEN_ADMIN}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "urn:ietf:params:oauth:grant-type:uma-ticket",
+							"type": "text"
+						},
+						{
+							"key": "audience",
+							"value": "quarkus-app",
+							"type": "text"
+						},
+						{
+							"key": "response_mode",
+							"value": "decision",
+							"type": "text"
+						},
+						{
+							"key": "permission",
+							"value": "book#write",
+							"type": "text"
+						},
+						{
+							"key": "permission",
+							"value": "book#read",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://{{KeyCloak_Address}}:{{keyCloakServerPort}}/realms/{{realm}}/protocol/openid-connect/token",
+					"protocol": "http",
+					"host": [
+						"{{KeyCloak_Address}}"
+					],
+					"port": "{{keyCloakServerPort}}",
+					"path": [
+						"realms",
+						"{{realm}}",
+						"protocol",
+						"openid-connect",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Client Get Permissions List Specific Permission and Scope Negative unauthorized 403",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{ACCESS_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "urn:ietf:params:oauth:grant-type:uma-ticket",
+							"type": "text"
+						},
+						{
+							"key": "audience",
+							"value": "quarkus-app",
+							"type": "text"
+						},
+						{
+							"key": "response_mode",
+							"value": "decision",
+							"type": "text"
+						},
+						{
+							"key": "permission",
+							"value": "book#write",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://{{KeyCloak_Address}}:{{keyCloakServerPort}}/realms/{{realm}}/protocol/openid-connect/token",
+					"protocol": "http",
+					"host": [
+						"{{KeyCloak_Address}}"
+					],
+					"port": "{{keyCloakServerPort}}",
+					"path": [
+						"realms",
+						"{{realm}}",
+						"protocol",
+						"openid-connect",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "KeyCloak Authorization Services",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{KeyCloak_Address}}:{{keyCloakServerPort}}/realms/{{realm}}/.well-known/uma2-configuration",
+					"protocol": "http",
+					"host": [
+						"{{KeyCloak_Address}}"
+					],
+					"port": "{{keyCloakServerPort}}",
+					"path": [
+						"realms",
+						"{{realm}}",
+						".well-known",
+						"uma2-configuration"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "basic",
+		"basic": [
+			{
+				"key": "password",
+				"value": "secret",
+				"type": "string"
+			},
+			{
+				"key": "username",
+				"value": "quarkus-app",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "ACCESS_TOKEN",
+			"value": ""
+		},
+		{
+			"key": "ACCESS_TOKEN_ADMIN",
+			"value": ""
+		}
+	]
+}
