@@ -13,7 +13,7 @@
 					"script": {
 						"exec": [
 							"var jsonData = JSON.parse(responseBody);",
-							"pm.collectionVariables.set(\"ACCESS_TOKEN\", \"Bearer  \" + jsonData.access_token);"
+							"pm.collectionVariables.set(\"ACCESS_TOKEN\", \"Bearer \" + jsonData.access_token);"
 						],
 						"type": "text/javascript"
 					}
@@ -88,7 +88,7 @@
 					"script": {
 						"exec": [
 							"var jsonData = JSON.parse(responseBody);",
-							"pm.collectionVariables.set(\"ACCESS_TOKEN_ADMIN\", \"Bearer  \" + jsonData.access_token);",
+							"pm.collectionVariables.set(\"ACCESS_TOKEN_ADMIN\", \"Bearer \" + jsonData.access_token);",
 							""
 						],
 						"type": "text/javascript"
@@ -421,7 +421,7 @@
 				"header": [
 					{
 						"key": "Authorization",
-						"value": "{{ACCESS_TOKEN_ADMIN}}",
+						"value": "{{ACCESS_TOKEN}}",
 						"type": "text"
 					}
 				],
@@ -604,6 +604,78 @@
 						"{{realm}}",
 						".well-known",
 						"uma2-configuration"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all Books",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{ACCESS_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://{{resource_server_address}}:{{resource_server_port}}/api/books",
+					"protocol": "http",
+					"host": [
+						"{{resource_server_address}}"
+					],
+					"port": "{{resource_server_port}}",
+					"path": [
+						"api",
+						"books"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Book",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{ACCESS_TOKEN_ADMIN}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": \"create test book 3\",\n    \"name\": \"create test book 3\",\n    \"genre\": \"Science\",\n    \"numOfPages\": 100,\n    \"authorName\": \"The King\",\n    \"price\": 100,\n    \"publishingDate\": \"2021-02-17\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://{{resource_server_address}}:{{resource_server_port}}/api/books",
+					"protocol": "http",
+					"host": [
+						"{{resource_server_address}}"
+					],
+					"port": "{{resource_server_port}}",
+					"path": [
+						"api",
+						"books"
 					]
 				}
 			},
