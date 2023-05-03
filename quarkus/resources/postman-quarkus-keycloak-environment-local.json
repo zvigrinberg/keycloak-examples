@@ -1,0 +1,69 @@
+{
+	"id": "e7624b0e-c789-476f-a3e1-76b30f42cce5",
+	"name": "KeyCloak Quarkus Demo",
+	"values": [
+		{
+			"key": "userRead",
+			"value": "bookreader",
+			"enabled": true
+		},
+		{
+			"key": "userReadPassword",
+			"value": "Redhat123#",
+			"enabled": true
+		},
+		{
+			"key": "userAdmin",
+			"value": "bookadmin",
+			"enabled": true
+		},
+		{
+			"key": "userAdminPassword",
+			"value": "bookadmin",
+			"enabled": true
+		},
+		{
+			"key": "clientId",
+			"value": "quarkus-app",
+			"enabled": true
+		},
+		{
+			"key": "realm",
+			"value": "quarkus",
+			"enabled": true
+		},
+		{
+			"key": "keyCloakServerPort",
+			"value": "36271",
+			"enabled": true
+		},
+		{
+			"key": "KeyCloak_Address",
+			"value": "localhost",
+			"enabled": true
+		},
+		{
+			"key": "clientSecret",
+			"value": "secret",
+			"enabled": true
+		},
+		{
+			"key": "variable_key",
+			"value": "variable_value",
+			"enabled": true
+		},
+		{
+			"key": "resource_server_address",
+			"value": "localhost",
+			"enabled": true
+		},
+		{
+			"key": "resource_server_port",
+			"value": "8080",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2023-05-03T09:23:58.523Z",
+	"_postman_exported_using": "Postman/8.12.4"
+}
