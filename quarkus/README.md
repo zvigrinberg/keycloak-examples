@@ -43,7 +43,6 @@ Authorization= On
 - [ ] OIDC CIBA Grant
 
 Finally Click on `save Button`
-### E
 
 ### Creating Client Roles
 1. Go to `Roles` Tab
@@ -66,32 +65,15 @@ Go to Clients menu -> Choose "quarkus-app" Client" -> Go to `Authorization` Tab.
 On `Settings` sub-tab (Under Authorization tab), choose the following:
 
 
-Policy enforcement mode  - 
-<label for="Enforcing">
-  <input type="radio" id="Enforcing" name="Enforcing" value="yes" checked />
-Enforcing
-</label>
-<label for="Permissive">
-  <input type="radio" id="Permissive" name="Permissive" value="yes" unchecked />
-Permissive
-</label>
-<label for="Disabled">
-  <input type="radio" id="Disabled" name="Disabled" value="yes" unchecked />
-Disabled
-</label>
+Policy enforcement mode= Enforcing
+
+Decision Strategy - Affirmative
+
+Remote Resource Management- On
+
+![img.png](./resources/pictures/authorization-settings.png)
 
 
-Decision Strategy -
-<label for="Unanimous">
-  <input type="radio" id="Unanimous" name="Unanimous" value="yes" unchecked />
-Unanimous
-</label>
-<label for="Affirmative">
-  <input type="radio" id="Affirmative" name="Affirmative" value="yes" checked />
-Affirmative
-</label>
-
-Remote Resource Management= On
 
 #### Define Authorization Scopes
 1. Go to Client --> Choose `Authorization` tab, and go to `Scopes` sub-tab
@@ -300,7 +282,10 @@ Location: http://localhost:8080/api/books/demo-book
 content-length: 0
 ```
 
-7. For your convenience , please find below a postman collection and environment files attached , with all endpoints to authenticate to retrieve tokens , and to Invoke the API endpoints, just change the environment variables( their scope is collection, not global) according to the users' passwords and with the right addresses and ports, kindly import them to your postman client:
+7. For your convenience , please find below a postman collection and environment files attached , with all endpoints to authenticate to retrieve tokens , and to Invoke the API endpoints, just change the environment variables( their scope is collection, not global) according to the users' passwords and with the right addresses and ports.
+
+
+   kindly import them to your postman client:
 - [Postman Collection](./resources/postman-collection-keycloak-endpoints.json)
 - [Postman Environment](./resources/postman-quarkus-keycloak-environment-local.json)
 
