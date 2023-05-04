@@ -67,9 +67,9 @@ On `Settings` sub-tab (Under Authorization tab), choose the following:
 
 Policy enforcement mode= Enforcing
 
-Decision Strategy - Affirmative
+Decision Strategy= Affirmative
 
-Remote Resource Management- On
+Remote Resource Management= On
 
 ![img.png](./resources/pictures/authorization-settings.png)
 
