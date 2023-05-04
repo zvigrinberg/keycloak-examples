@@ -98,6 +98,7 @@ You should see 2 Authorization Scopes:
 
 ![img.png](./resources/pictures/protect-resource.png)
 
+
 #### Define Policies
 1. Go to Client --> Choose `Authorization` tab, and go to `Policies` sub-tab
 2. Click on button `Create policy
@@ -135,14 +136,14 @@ quarkus.keycloak.policy-enforcer.enable=true
 quarkus.keycloak.policy-enforcer.http-method-as-scope=true
 
 quarkus.keycloak.policy-enforcer.paths.1.name=read_book_permission
-quarkus.keycloak.policy-enforcer.paths.1.path=/api/books
+quarkus.keycloak.policy-enforcer.paths.1.path=/api/books/*
 quarkus.keycloak.policy-enforcer.paths.1.enforcement-mode=ENFORCING
 quarkus.keycloak.policy-enforcer.paths.1.methods.get.method=GET
 quarkus.keycloak.policy-enforcer.paths.1.methods.get.scopes=read
 #
 #
 quarkus.keycloak.policy-enforcer.paths.2.name=write_book_permission
-quarkus.keycloak.policy-enforcer.paths.2.path=/api/books
+quarkus.keycloak.policy-enforcer.paths.2.path=/api/books/*
 quarkus.keycloak.policy-enforcer.paths.2.enforcement-mode=ENFORCING
 quarkus.keycloak.policy-enforcer.paths.2.methods.post.method=POST
 quarkus.keycloak.policy-enforcer.paths.2.methods.post.scopes=write
