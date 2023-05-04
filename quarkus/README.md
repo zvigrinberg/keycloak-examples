@@ -16,7 +16,7 @@ If you want to learn more about Quarkus, please visit its website: https://quark
 
 You can run your application in dev mode that enables live coding using:
 ```shell script
-./auth-scopes.png compile quarkus:dev
+./mvnw compile quarkus:dev
 ```
 
 > **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/.
@@ -211,13 +211,104 @@ public class BookResource {
 
 ### Test The Application
 
-#### Trying to consume 
+1. Trying to consume the API Without Authentication
+```shell
+curl -I --location --request GET 'http://localhost:8080/api/books'
+```
+Output:
+```shell
+HTTP/1.1 401 Unauthorized
+www-authenticate: Bearer
+content-length: 0
+
+```
+
+2. Authenticate bookReader user using quarkus-app client in order to retrieve from keycloak an access token (change all details according to the passwords you've set on keycloak, and according to assigned listening port of keycloak running in container ):
+```shell
+export ACCESS_TOKEN=$(curl --location --request POST 'http://localhost:36271/realms/quarkus/protocol/openid-connect/token' --header 'content-type: application/x-www-form-urlencoded' --header 'Authorization: Basic cXVhcmt1cy1hcHA6c2VjcmV0' --data-urlencode 'username=bookreader' --data-urlencode 'password=Redhat123#' --data-urlencode 'grant_type=password' | jq .access_token | tr -d '"')
+```
+
+3. Now try to consume the API GET Endpoint using the retrieved token:
+```shell
+ curl  --location --request GET 'http://localhost:8080/api/books' -H 'Authorization: Bearer '$ACCESS_TOKEN''  | jq .
+```
+Output:
+```shell
+[
+  {
+    "id": "test",
+    "name": "test-book",
+    "genre": "Comedy",
+    "numOfPages": 250,
+    "authorName": "John Doe",
+    "price": 60,
+    "publishingDate": "1984-01-03"
+  }
+]
+```
+
+4. Now try to create a Book With the "bookreader" user ( Invoke Rest API POST Method) , using bookreader' valid and not expired token of that user:
+```shell
+curl -i --location --request POST 'http://localhost:8080/api/books' \
+--header 'Authorization: Bearer '$ACCESS_TOKEN'' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "id": "demo book",
+    "name": "demo book test",
+    "genre": "Science",
+    "numOfPages": 350,
+    "authorName": "John Doe",
+    "price": 25,
+    "publishingDate": "2019-01-18"
+}'
+```
+Output:
+```shell
+HTTP/1.1 403 Forbidden
+content-length: 0
+```
+
+5. Now Authenticate using the "bookadmin" User and get access token from keycloak ( change all details according to the passwords you've set on keycloak, and according to assigned listening port of keycloak running in container):
+```shell
+export ACCESS_TOKEN=$(curl --location --request POST 'http://localhost:36271/realms/quarkus/protocol/openid-connect/token' \
+--header 'content-type: application/x-www-form-urlencoded' \
+--header 'Authorization: Basic cXVhcmt1cy1hcHA6c2VjcmV0' \
+--data-urlencode 'username=bookadmin' \
+--data-urlencode 'password=bookadmin' \
+--data-urlencode 'grant_type=password' | jq .access_token | tr -d '"')
+```
+
+6. Now try to invoke the POST Method to create a book, using token of the privileged user bookadmin:
+```shell
+curl -i --location --request POST 'http://localhost:8080/api/books' \
+--header 'Authorization: Bearer '$ACCESS_TOKEN'' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "id": "demo-book",
+    "name": "demo book test",
+    "genre": "Science",
+    "numOfPages": 350,
+    "authorName": "John Doe",
+    "price": 25,
+    "publishingDate": "2019-01-18"
+}'
+```
+Output:
+```shell
+HTTP/1.1 201 Created
+Location: http://localhost:8080/api/books/demo-book
+content-length: 0
+```
+
+7. For your convenience , please find below a postman collection and environment files attached , with all endpoints to authenticate to retrieve tokens , and to Invoke the API endpoints, just change the environment variables( their scope is collection, not global) according to the users' passwords and with the right addresses and ports, kindly import them to your postman client:
+- [Postman Collection](./resources/postman-collection-keycloak-endpoints.json)
+- [Postman Environment](./resources/postman-quarkus-keycloak-environment-local.json)
 
 ## Packaging and running the application
 
 The application can be packaged using:
 ```shell script
-./auth-scopes.png package
+./mvnw package
 ```
 It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
 Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
@@ -226,7 +317,7 @@ The application is now runnable using `java -jar target/quarkus-app/quarkus-run.
 
 If you want to build an _über-jar_, execute the following command:
 ```shell script
-./auth-scopes.png package -Dquarkus.package.type=uber-jar
+./mvnw package -Dquarkus.package.type=uber-jar
 ```
 
 The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
@@ -235,12 +326,12 @@ The application, packaged as an _über-jar_, is now runnable using `java -jar ta
 
 You can create a native executable using: 
 ```shell script
-./auth-scopes.png package -Pnative
+./mvnw package -Pnative
 ```
 
 Or, if you don't have GraalVM installed, you can run the native executable build in a container using: 
 ```shell script
-./auth-scopes.png package -Pnative -Dquarkus.native.container-build=true
+./mvnw package -Pnative -Dquarkus.native.container-build=true
 ```
 
 You can then execute your native executable with: `./target/code-with-quarkus-1.0.0-SNAPSHOT-runner`
