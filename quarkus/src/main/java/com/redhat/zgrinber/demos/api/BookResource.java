@@ -46,7 +46,7 @@ public class BookResource {
             try
             {
               getBooksService.CreateBook(book);
-                result = Response.created(URI.create("localhost")).build();
+                result = Response.created(URI.create("/api/books/" + book.getId())).build();
             }
             catch (Exception e)
             {
