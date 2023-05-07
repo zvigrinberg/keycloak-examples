@@ -40,6 +40,7 @@ To show how to use Keycloak as Authentication And Authorization Server in order 
 
 - Protecting RESTful API Service' resources using [keycloak and Quarkus](./quarkus).
 - Protecting RESTful API Service' resources and WEB UI apps using [keycloak , Spring Boot and Spring Security](./quarkus). - WIP
-- Protecting RESTful API Service' resources using Java Filter and keycloak Authorization client java API - TBD
+- Protecting RESTful API Service' resources using Java HTTP Filter and keycloak Authorization client java API - TBD
 - Protecting endpoints using JAVA and proxy Design Pattern and keycloak Authorization client java API - TBD
 - Using Interceptor of REST Resource in Quarkus - TBD.  
+- Using Spring AOP Aspect of REST Resource in Spring Framework - TBD.  
