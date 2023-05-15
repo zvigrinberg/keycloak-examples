@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-@Component
+//@Component
 public class KeycloakLogoutHandler implements LogoutHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(KeycloakLogoutHandler.class);
@@ -35,7 +35,7 @@ public class KeycloakLogoutHandler implements LogoutHandler {
 
         ResponseEntity<String> logoutResponse = restTemplate.getForEntity(builder.toUriString(), String.class);
         if (logoutResponse.getStatusCode().is2xxSuccessful()) {
-            logger.info("Successfulley logged out from Keycloak");
+            logger.info("Successfully logged out from Keycloak");
         } else {
             logger.error("Could not propagate logout to Keycloak");
         }

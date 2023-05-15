@@ -1,6 +1,11 @@
 package com.redhat.zgrinber.keycloakintegrationspringboot.config;
 
+import com.redhat.zgrinber.keycloakintegrationspringboot.filter.KeyCloakRptTokenFilter;
 import com.redhat.zgrinber.keycloakintegrationspringboot.keycloak.KeycloakLogoutHandler;
+import jakarta.servlet.Filter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -9,19 +14,20 @@ import org.springframework.security.config.annotation.web.configurers.oauth2.ser
 
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 
 
 @Configuration
-@EnableWebSecurity
+@EnableWebSecurity(debug = true)
+@RequiredArgsConstructor
 class SecurityConfig {
 
-    private final KeycloakLogoutHandler keycloakLogoutHandler;
-
-    SecurityConfig(KeycloakLogoutHandler keycloakLogoutHandler) {
-        this.keycloakLogoutHandler = keycloakLogoutHandler;
-    }
+//    private final KeycloakLogoutHandler keycloakLogoutHandler;
+    private final JwtAuthConverter jwtAuthConverter;
+    @Qualifier("KeyCloakRptTokenFilter")
+    private final KeyCloakRptTokenFilter myFilter;
 
     @Bean
     protected SessionAuthenticationStrategy sessionAuthenticationStrategy() {
@@ -31,16 +37,21 @@ class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests()
-                .requestMatchers("/customers*")
-                .hasRole("USER")
+                .requestMatchers("customers")
+                .hasAnyRole("regular-user","admin")
+                .requestMatchers("admin")
+                .hasRole("admin")
+                .requestMatchers("items")
+                .hasAuthority("SCOPE_manage_items")
                 .anyRequest()
-                .permitAll();
-        http.oauth2Login()
-                .and()
-                .logout()
-                .addLogoutHandler(keycloakLogoutHandler)
-                .logoutSuccessUrl("/");
-        http.oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
+                .authenticated();
+//        http.oauth2Login()
+//                .and()
+//                .logout()
+//                .addLogoutHandler(keycloakLogoutHandler)
+//                .logoutSuccessUrl("/");
+        http.addFilterAfter(myFilter, AuthorizationFilter.class);
+        http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(jwtAuthConverter);
         return http.build();
     }
 }
