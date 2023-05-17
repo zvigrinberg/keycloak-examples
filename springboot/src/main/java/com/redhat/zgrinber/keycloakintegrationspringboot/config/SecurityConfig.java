@@ -41,8 +41,8 @@ class SecurityConfig {
                 .hasAnyRole("regular-user","admin")
                 .requestMatchers("admin")
                 .hasRole("admin")
-                .requestMatchers("items")
-                .hasAuthority("SCOPE_manage_items")
+//                .requestMatchers("items")
+//                .hasAuthority("SCOPE_manage_items")
                 .anyRequest()
                 .authenticated();
 //        http.oauth2Login()
