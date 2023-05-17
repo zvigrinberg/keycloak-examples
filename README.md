@@ -27,7 +27,7 @@ in Keycloak Terms:
 - Identity brokering - Authenticate with external OIDC or SAML Identity Providers.
 - Provides a SSO Capabilities ( Authenticate once using one identity across a lot of different applications/clients).
 - Various Java API clients for keycloak, and for JavaScripts, and Complete REST API to interact with the server for languages that don't have a keycloak client/adapter.
-- Can act As an Authorization Server, and application can be a resource server, and authorization decisions can be fetched by resources server from authorization server (Using Keycloak Client/Adapter/Rest API) , hence completely decoupling authorization process and  mechanism from application and its business logic. (Usually The fetching of authorization decisions is performed in PEP - Policy Enforcement Points in the application, usually by code not related to business logic like framework/filter/interceptor/proxy/decorator)   
+- Can act As an Authorization Server, and application can be a resource server, and authorization decisions can be fetched by resources server from authorization server (Using Keycloak Client/Adapter/Rest API) , hence completely decoupling authorization process and decisions and mechanism from application and its business logic. (Usually The fetching of authorization decisions is performed in PEP - Policy Enforcement Points in the application, usually by code not related to business logic like framework/filter/interceptor/proxy/decorator)   
 - User Federation - Sync users from LDAP and Active Directory servers
 - Kerberos bridge - Automatically authenticate users that are logged-in to a Kerberos server.
 
@@ -39,8 +39,11 @@ To show how to use Keycloak as Authentication And Authorization Server in order 
 ## List of Demos
 
 - Protecting RESTful API Service' resources using [keycloak and Quarkus](./quarkus).
-- Protecting RESTful API Service' resources and WEB UI apps using [keycloak , Spring Boot and Spring Security](./springboot). - WIP
-- Protecting RESTful API Service' resources using Java HTTP Filter and keycloak Authorization client java API - TBD
+- Protecting RESTful API Service' resources apps using [keycloak , Spring Boot and Spring Security](./springboot). 
+- Protecting RESTful API Service' resources using [Java HTTP Filter and keycloak Authorization API Services Via Rest API](./springboot)
 - Protecting endpoints using JAVA and proxy Design Pattern and keycloak Authorization client java API - TBD
 - Using Interceptor of REST Resource in Quarkus - TBD.  
 - Using Spring AOP Aspect of REST Resource in Spring Framework - TBD.  
+- Protecting WEB UI Application in JAVA , using keycloak `/auth` endpoint
+- Protecting WEB UI/CLI Application, Golang.
+ 
