@@ -1,7 +1,14 @@
 logging:
   level:
-    root: DEBUG
+    root: trace
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  server:
+    port: 9090
 
 server:
   port: 8081
