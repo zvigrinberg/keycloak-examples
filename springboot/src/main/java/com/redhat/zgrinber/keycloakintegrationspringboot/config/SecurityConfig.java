@@ -38,6 +38,7 @@ class SecurityConfig {
         return new RegisterSessionAuthenticationStrategy(new SessionRegistryImpl());
     }
 
+    //Actuator Endpoints
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.securityMatcher(EndpointRequest.toAnyEndpoint());
@@ -51,9 +52,9 @@ class SecurityConfig {
                 .requestMatchers("customers")
                 .hasAnyRole("regular-user","admin")
                 .requestMatchers("admin")
-                .hasRole("admin");
-//                .anyRequest()
-//                .authenticated();
+                .hasRole("admin")
+                .anyRequest()
+                .authenticated();
 //                .requestMatchers("items")
 //                .hasAuthority("SCOPE_manage_items")
 

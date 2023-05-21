@@ -1,12 +1,10 @@
 package com.redhat.zgrinber.keycloakintegrationspringboot.service;
 
+import com.redhat.zgrinber.keycloakintegrationspringboot.exception.EntityNotFoundException;
 import com.redhat.zgrinber.keycloakintegrationspringboot.model.Customer;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class CustomerInMemoryService implements CustomerService {
@@ -20,8 +18,8 @@ public class CustomerInMemoryService implements CustomerService {
     }
 
     @Override
-    public Customer getOneCustomer(String id) {
-        return customers.get(id);
+    public Customer getOneCustomer(String id) throws EntityNotFoundException {
+        return Optional.ofNullable(customers.get(id)).orElseThrow(() ->  new EntityNotFoundException("Customer with id=" + id + " wasn't found in DB" ,"Customer"));
     }
 
     @Override

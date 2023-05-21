@@ -5,6 +5,7 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -22,6 +23,7 @@ import java.util.Map;
 // resources that not defined in keycloak are continuing with the filter chain until the controller ( if not blocked before this filter by Spring security by role or client scope).
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class KeyCloakRptTokenFilter implements Filter {
 
     private static final Map<String,String> methodsToScopes;
@@ -122,7 +124,7 @@ public class KeyCloakRptTokenFilter implements Filter {
 
             else
             {
-                System.out.printf("Calling keycloak for authorization decision failed, with the following message, skipping the filter -  %s", e.getMessage());
+                log.warn("Calling keycloak for authorization decision failed with the following message, skipping the filter: ", e);
                 e.printStackTrace();
             }
 
