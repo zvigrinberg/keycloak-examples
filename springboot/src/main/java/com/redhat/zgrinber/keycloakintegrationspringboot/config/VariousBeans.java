@@ -4,6 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.web.client.RestTemplate;
 
+
+@Configuration
 public class VariousBeans {
 
 
