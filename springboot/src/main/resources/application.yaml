@@ -1,12 +1,12 @@
 logging:
   level:
-    root: trace
+    root: INFO
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,readiness
   server:
     port: ${MANAGEMENT_SERVER_PORT:9090}
 
@@ -28,10 +28,25 @@ spring:
 
 keycloak:
   parameters:
-    client-id: spring-boot-app
+    client-id: ${SPRING_CLIENT_ID:spring-boot-app}
+    client-password: ${SPRING_CLIENT_PASSWORD:ZjvIwT5SuQ3wrqwW1kst4vxhCtvgcKo7}
     serverAddress: ${KEYCLOAK_SERVER_ADDRESS:http://localhost:8080}
     adminUser: ${KC_ADMIN_USER:admin}
     adminPassword: ${KC_ADMIN_PASS:admin}
+    adminUserSpring: ${KC_ADMIN_USER_SPRING:administrator}
+    adminPasswordSpring: ${KC_ADMIN_PASS_SPRING:admin}
+    resources:
+      - name: items
+        scopes:
+        - read
+        - update
+        - delete
+        - write
+    custom-client-scopes:
+      - can_write_entity
+    roles:
+      - admin
+      - regular-user
 
 #      client:
 #        registration:
