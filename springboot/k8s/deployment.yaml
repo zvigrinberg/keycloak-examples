@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: springboot-keycloak-app
+  name: springboot-keycloak-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: springboot-keycloak-app
+  template:
+    metadata:
+      labels:
+        app: springboot-keycloak-app
+    spec:
+      containers:
+      - image: quay.io/zgrinber/keycloak-integration-springboot:1
+        imagePullPolicy: IfNotPresent
+        name: keycloak-integration-springboot
+        ports:
+          - containerPort: 8081
+            name: http
+          - containerPort: 9090
+            name: management
+
+        livenessProbe:
+          httpGet:
+            port: 9090
+            path: /actuator/health
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          failureThreshold: 4
+          successThreshold: 1
+          timeoutSeconds: 2
+
+        readinessProbe:
+          httpGet:
+            port: 9090
+            path: /actuator/readiness
+          initialDelaySeconds: 6
+          periodSeconds: 10
+          failureThreshold: 4
+          successThreshold: 1
+
+
+      - image: quay.io/keycloak/keycloak:21.1.1
+        name: keycloak
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 8080
+            name: http
+        command:
+          - "/opt/keycloak/bin/kc.sh"
+        args:
+          - start-dev
+        env:
+          - name: KEYCLOAK_ADMIN
+            value: admin
+          - name: KEYCLOAK_ADMIN_PASSWORD
+            value: admin
+          - name: KC_HEALTH_ENABLED
+            value: "true"
+        lifecycle:
+          postStart:
+            exec:
+              command: [ "/bin/sh","-c", " sleep 1 ; curl -X POST http://localhost:9999/__admin/mappings/import -T /tmp/mocks/mappings.json " ]
+
+
+
+
