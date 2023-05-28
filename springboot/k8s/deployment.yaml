@@ -14,16 +14,25 @@ spec:
       labels:
         app: springboot-keycloak-app
     spec:
+      volumes:
+        - name: realm-configmap
+          configMap:
+            name: spring-realm
+            defaultMode: 0777
       containers:
       - image: quay.io/zgrinber/keycloak-integration-springboot:1
         imagePullPolicy: IfNotPresent
         name: keycloak-integration-springboot
+        env:
+          - name: KEYCLOAK_ADMIN
+            value: admin
+          - name: KEYCLOAK_ADMIN_PASSWORD
+            value: admin
         ports:
           - containerPort: 8081
             name: http
           - containerPort: 9090
             name: management
-
         livenessProbe:
           httpGet:
             port: 9090
@@ -33,7 +42,6 @@ spec:
           failureThreshold: 4
           successThreshold: 1
           timeoutSeconds: 2
-
         readinessProbe:
           httpGet:
             port: 9090
@@ -42,14 +50,20 @@ spec:
           periodSeconds: 10
           failureThreshold: 4
           successThreshold: 1
-
+        volumeMounts:
+          - mountPath: /tmp/spring-realm.json
+            name: realm-configmap
+        lifecycle:
+          postStart:
+            exec:
+              command: ["bash", "-c","export ACCESS_TOKEN=$(curl -X POST http://localhost:8080/realms/master/protocol/openid-connect/token --data-urlencode 'grant_type=password' --data-urlencode 'client_id=admin-cli' --data-urlencode  'username='$KEYCLOAK_ADMIN'' --data-urlencode 'password='$KEYCLOAK_ADMIN_PASSWORD'' --header 'Content-Type: application/x-www-form-urlencoded' | grep access_token | awk -F ':' '{print $2}' | awk -F '\"' '{print $2}') ; curl -X POST http://localhost:8080/admin/realms --header 'Authorization: Bearer '$ACCESS_TOKEN'' --header 'Content-Type: application/json' -T /tmp/spring-realm.json"]
 
       - image: quay.io/keycloak/keycloak:21.1.1
         name: keycloak
         imagePullPolicy: IfNotPresent
         ports:
           - containerPort: 8080
-            name: http
+            name: keycloak-http
         command:
           - "/opt/keycloak/bin/kc.sh"
         args:
@@ -61,10 +75,7 @@ spec:
             value: admin
           - name: KC_HEALTH_ENABLED
             value: "true"
-        lifecycle:
-          postStart:
-            exec:
-              command: [ "/bin/sh","-c", " sleep 1 ; curl -X POST http://localhost:9999/__admin/mappings/import -T /tmp/mocks/mappings.json " ]
+
 
 
 
