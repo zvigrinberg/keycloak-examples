@@ -5,6 +5,8 @@ configMapGenerator:
   - name: spring-realm
     files:
       - ./spring-realm.json
+      - ./upload-realm-keycloak.sh
     behavior: create
+
 generatorOptions:
   disableNameSuffixHash: false

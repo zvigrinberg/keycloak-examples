@@ -37,7 +37,7 @@ spec:
           httpGet:
             port: 9090
             path: /actuator/health
-          initialDelaySeconds: 5
+          initialDelaySeconds: 15
           periodSeconds: 10
           failureThreshold: 4
           successThreshold: 1
@@ -47,16 +47,16 @@ spec:
             port: 9090
             path: /actuator/readiness
           initialDelaySeconds: 6
-          periodSeconds: 10
+          periodSeconds: 4
           failureThreshold: 4
           successThreshold: 1
         volumeMounts:
-          - mountPath: /tmp/spring-realm.json
+          - mountPath: /tmp/scripts
             name: realm-configmap
         lifecycle:
           postStart:
             exec:
-              command: ["bash", "-c","export ACCESS_TOKEN=$(curl -X POST http://localhost:8080/realms/master/protocol/openid-connect/token --data-urlencode 'grant_type=password' --data-urlencode 'client_id=admin-cli' --data-urlencode  'username='$KEYCLOAK_ADMIN'' --data-urlencode 'password='$KEYCLOAK_ADMIN_PASSWORD'' --header 'Content-Type: application/x-www-form-urlencoded' | grep access_token | awk -F ':' '{print $2}' | awk -F '\"' '{print $2}') ; curl -X POST http://localhost:8080/admin/realms --header 'Authorization: Bearer '$ACCESS_TOKEN'' --header 'Content-Type: application/json' -T /tmp/spring-realm.json"]
+              command: ["bash","-c", "/tmp/scripts/upload-realm-keycloak.sh &"]
 
       - image: quay.io/keycloak/keycloak:21.1.1
         name: keycloak
