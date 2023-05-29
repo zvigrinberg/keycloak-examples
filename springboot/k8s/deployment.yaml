@@ -75,6 +75,10 @@ spec:
             value: admin
           - name: KC_HEALTH_ENABLED
             value: "true"
+          - name: KC_HOSTNAME
+            value: localhost:8080
+          - name: KC_HOSTNAME_STRICT
+            value: "false"
 
 
 
