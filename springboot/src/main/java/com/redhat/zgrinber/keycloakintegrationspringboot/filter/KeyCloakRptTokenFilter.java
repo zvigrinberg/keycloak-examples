@@ -52,9 +52,24 @@ public class KeyCloakRptTokenFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
         HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
-        String resourceName = httpServletRequest.getServletPath().substring(1);
+        String resourcePath = httpServletRequest.getServletPath().substring(1);
+        String resourceName="";
+
+        String[] parts = resourcePath.split("v[1-9][0-9]*");
+        //path doesn't contains api and version prefix
+        if (parts.length == 1)
+        {
+            resourceName= parts[0];
+        }
+        //path contains api and version prefix
+        else if(parts.length > 1)
+        {
+            resourceName = parts[1];
+        }
+        resourceName = resourceName.split("/")[0];
+
         //Actuator endpoints are not authenticated ,so we should skip the whole process for them).
-        if(resourceName.contains("actuator"))
+        if(resourcePath.contains("actuator"))
         {
             filterChain.doFilter(servletRequest, servletResponse);
         }
