@@ -15,6 +15,13 @@ Save to file:
  podman exec keycloak cat /tmp/spring-realm.json > keycloak-config/spring-realm.json
 ```
 
+## Import realm to keycloak
+If you have a full json with all realm configuration, you can import it to keycloak instance using the admin-cli client and admin user:
+```shell
+export TOKEN=$(curl -X POST http://localhost:8080/realms/master/protocol/openid-connect/token --data-urlencode 'grant_type=password' --data-urlencode 'client_id=admin-cli' --data-urlencode  'username=admin' --data-urlencode 'password=admin' --header 'Content-Type: application/x-www-form-urlencoded' | jq .access_token | tr -d '"')
+curl -i -X POST http://localhost:8080/admin/realms --header 'Authorization: Bearer '$TOKEN'' --header 'Content-Type: application/json' -T keycloak-config/spring-realm.json
+```
+
 ## Creating container image
 
 ### Using maven Spring boot plugin:
@@ -204,10 +211,10 @@ Output:
 NAME                                      READY   STATUS    RESTARTS   AGE
 springboot-keycloak-app-f7bb9fc65-87l4c   0/2     Pending   0          0s
 springboot-keycloak-app-f7bb9fc65-87l4c   0/2     Pending   0          0s
-springboot-keycloak-app-f7bb9fc65-87l4c   0/2     ContainerCreating   0          0s
-springboot-keycloak-app-f7bb9fc65-87l4c   0/2     ContainerCreating   0          2s
-springboot-keycloak-app-f7bb9fc65-87l4c   1/2     Running             0          3s
-springboot-keycloak-app-f7bb9fc65-87l4c   2/2     Running             0          24s
+springboot-keycloak-app-f7bb9fc65-87l4c   0/2     ContainerCreating    0s
+springboot-keycloak-app-f7bb9fc65-87l4c   0/2     ContainerCreating    2s
+springboot-keycloak-app-f7bb9fc65-87l4c   1/2     Running              3s
+springboot-keycloak-app-f7bb9fc65-87l4c   2/2     Running              24s
 ```
 
 6. Expose route of application service
@@ -266,8 +273,8 @@ export CLIENT_SECRET=ZjvIwT5SuQ3wrqwW1kst4vxhCtvgcKo7
 ```
 12. Retrieve token for user someone( password is also someone ):
 ```shell
-export USER=my-user
-export PASSWORD=password
+export USER=someone
+export PASSWORD=someone
 export TOKEN=$(curl -X POST 'http://'${KEYCLOAK_URL}'/realms/spring/protocol/openid-connect/token' --user ''$CLIENT_ID':'$CLIENT_SECRET'' --header 'content-type: application/x-www-form-urlencoded' --data-urlencode 'username='${USER}''  --data-urlencode 'password='${PASSWORD}'' --data-urlencode 'grant_type=password' | jq .access_token | tr -d "\"")
 ```
 

@@ -83,28 +83,42 @@ public class KeyCloakRptTokenFilter implements Filter {
             String scope = methodsToScopes.get(method);
             String fullAddress = keycloakServerPortAndRealm + "/protocol/openid-connect/token";
             String responseMode = "permissions";
-
-            boolean resourceExists = callKeycloakForRptCheckIfResourceExist(token, fullAddress, responseMode, resourceName);
             boolean authorizationGranted = false;
-            if (resourceExists) {
-                resourceName = resourceName.replace('/', ' ').trim();
-                responseMode = "decision";
-                authorizationGranted = callKeycloakForAuthorizationDecision(token, fullAddress, responseMode, resourceName, scope);
-                if (authorizationGranted) {
-                    filterChain.doFilter(servletRequest, servletResponse);
-                } else {
-                    httpServletResponse.resetBuffer();
-                    httpServletResponse.setStatus(HttpStatus.FORBIDDEN.value());
-                    httpServletResponse.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
-                    String jsonResponse = "{\"message\": \" Keycloak Authorization Server blocked the access to the resource! \" , \"resource-name\": \"placeholder\"}";
-                    httpServletResponse.getOutputStream().print(jsonResponse.replace("placeholder", resourceName));
-                    httpServletResponse.flushBuffer();
+            boolean resourceExists;
+            try {
+                resourceExists = callKeycloakForRptCheckIfResourceExist(token, fullAddress, responseMode, resourceName);
+                if (resourceExists) {
+                    responseMode = "decision";
+                    authorizationGranted = callKeycloakForAuthorizationDecision(token, fullAddress, responseMode, resourceName, scope);
+                    if (authorizationGranted) {
+                        filterChain.doFilter(servletRequest, servletResponse);
+                    } else {
+                        sendForbiddenResponse(httpServletResponse, resourceName);
 
+                    }
+                } else {
+                    filterChain.doFilter(servletRequest, servletResponse);
                 }
-            } else {
-                filterChain.doFilter(servletRequest, servletResponse);
+            } catch (HttpClientErrorException e) {
+                if(e.getStatusCode().value() == HttpStatus.FORBIDDEN.value())
+                {
+                    sendForbiddenResponse(httpServletResponse, resourceName);
+                }
+
+            } catch (Exception e) {
+                throw e;
             }
         }
+    }
+
+    private void sendForbiddenResponse(HttpServletResponse httpServletResponse, String resourceName) throws IOException {
+        log.error("User is not authorized to access resource " + resourceName + ", returning HTTP Status Forbidden = 403 to client");
+        httpServletResponse.resetBuffer();
+        httpServletResponse.setStatus(HttpStatus.FORBIDDEN.value());
+        httpServletResponse.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+        String jsonResponse = "{\"message\": \" Keycloak Authorization Server blocked the access to the resource! \" , \"resource-name\": \"placeholder\"}";
+        httpServletResponse.getOutputStream().print(jsonResponse.replace("placeholder", resourceName));
+        httpServletResponse.flushBuffer();
     }
 
     private boolean callKeycloakForAuthorizationDecision(String token, String fullAddress, String responseMode, String resourceName, String scope) {
