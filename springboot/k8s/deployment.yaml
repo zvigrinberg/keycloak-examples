@@ -20,7 +20,7 @@ spec:
             name: spring-realm
             defaultMode: 0777
       containers:
-      - image: quay.io/zgrinber/keycloak-integration-springboot:1
+      - image: quay.io/zgrinber/keycloak-integration-springboot:2
         imagePullPolicy: IfNotPresent
         name: keycloak-integration-springboot
         env:
@@ -28,6 +28,8 @@ spec:
             value: admin
           - name: KEYCLOAK_ADMIN_PASSWORD
             value: admin
+          - name: LOG_LEVEL
+            value: TRACE
         ports:
           - containerPort: 8081
             name: http
@@ -76,9 +78,11 @@ spec:
           - name: KC_HEALTH_ENABLED
             value: "true"
           - name: KC_HOSTNAME
-            value: localhost:8080
+            value: localhost
           - name: KC_HOSTNAME_STRICT
             value: "false"
+          - name: KC_HOSTNAME_PORT
+            value: "8080"
 
 
 
