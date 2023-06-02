@@ -97,6 +97,235 @@ podman build -t  quay.io/zgrinber/keycloak-integration-springboot:1 .
 podman push quay.io/zgrinber/keycloak-integration-springboot:1
 ```
 
+## Spring Security And Spring boot Integration With Keycloak
+
+### Defining PEP (Policy Enforcement point) using custom JAVA Filter
+
+This piece of code is a filter that intercept all calls before they're arriving to controller, and it runs after all other authentication and authorization filters ( right after Authorization filter) of spring security already processed them.
+AuthorizationFilter is not fully integrated with keycloak as authorization server as it only maps from user JWT the `Roles` of users as roles, and `Client Scopes` of user as Authorities , So permissions and their policies are not getting any representation in spring security.
+We can use JwtAuthConverter to do custom mapping from user's JWT to `AbstractAuthenticationToken`, But user' JWT doesn't contain the permissions and authorization scopes, only roles and client scopes.
+The kind of JWT token that is needed for obtaining the permissions is RPT token (Request Party Token), which is not supported by spring security.
+
+hence `KeyCloakRptTokenFilter` filter is essential at the end of the filter chain, before flow passed (if approved) to controllers.
+
+
+KeyCloakRptTokenFilter.java:
+```java
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class KeyCloakRptTokenFilter implements Filter {
+
+    private static final Map<String, String> methodsToScopes;
+    private static final String grantType = "urn:ietf:params:oauth:grant-type:uma-ticket";
+    private final RestTemplate restTemplate;
+    @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri:http://localhost:8080/realms/spring}")
+    private String keycloakServerPortAndRealm;
+    @Value("${keycloak.parameters.client-id}")
+    private String jwtAudience;
+
+    static {
+        methodsToScopes = new HashMap<>();
+        methodsToScopes.put("GET", "read");
+        methodsToScopes.put("POST", "write");
+        methodsToScopes.put("PUT", "update");
+        methodsToScopes.put("DELETE", "delete");
+
+    }
+
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+        Filter.super.init(filterConfig);
+    }
+
+    @Override
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+        HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
+        HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
+        String resourcePath = httpServletRequest.getServletPath().substring(1);
+        String resourceName = "";
+
+        String[] parts = resourcePath.split("v[1-9][0-9]*");
+        //path doesn't contains api and version prefix
+        if (parts.length == 1) {
+            resourceName = parts[0];
+        }
+        //path contains api and version prefix
+        else if (parts.length > 1) {
+            resourceName = parts[1];
+        }
+        resourceName = resourceName.split("/")[0];
+
+        //Actuator endpoints are not authenticated ,so we should skip the whole process for them).
+        if (resourcePath.contains("actuator")) {
+            filterChain.doFilter(servletRequest, servletResponse);
+        } else {
+
+
+            String method = httpServletRequest.getMethod();
+            String authorization = httpServletRequest.getHeader("Authorization");
+            String token = authorization.split(" ")[1];
+            String scope = methodsToScopes.get(method);
+            String fullAddress = keycloakServerPortAndRealm + "/protocol/openid-connect/token";
+            String responseMode = "permissions";
+            boolean authorizationGranted = false;
+            boolean resourceExists;
+            try {
+                resourceExists = callKeycloakForRptCheckIfResourceExist(token, fullAddress, responseMode, resourceName);
+                if (resourceExists) {
+                    responseMode = "decision";
+                    authorizationGranted = callKeycloakForAuthorizationDecision(token, fullAddress, responseMode, resourceName, scope);
+                    if (authorizationGranted) {
+                        filterChain.doFilter(servletRequest, servletResponse);
+                    } else {
+                        sendForbiddenResponse(httpServletResponse, resourceName);
+
+                    }
+                } else {
+                    filterChain.doFilter(servletRequest, servletResponse);
+                }
+            } catch (HttpClientErrorException e) {
+                if (e.getStatusCode().value() == HttpStatus.FORBIDDEN.value()) {
+                    sendForbiddenResponse(httpServletResponse, resourceName);
+                }
+
+            } catch (Exception e) {
+                throw e;
+            }
+        }
+    }
+    //.....
+    //.....
+    //ommited most of the code as it's not relevant for understanding , only to implementation
+}
+```
+
+
+```java
+@Configuration(proxyBeanMethods = false)
+@EnableWebSecurity(debug = true)
+@RequiredArgsConstructor
+class SecurityConfig {
+
+//    private final KeycloakLogoutHandler keycloakLogoutHandler;
+    private final JwtAuthConverter jwtAuthConverter;
+    @Qualifier("KeyCloakRptTokenFilter")
+    private final KeyCloakRptTokenFilter myFilter;
+
+    @Bean
+    protected SessionAuthenticationStrategy sessionAuthenticationStrategy() {
+        return new RegisterSessionAuthenticationStrategy(new SessionRegistryImpl());
+    }
+
+    //Actuator Endpoints
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.securityMatcher(EndpointRequest.toAnyEndpoint());
+        http.authorizeHttpRequests((requests) -> requests.anyRequest().permitAll());
+        return http.build();
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.authorizeHttpRequests()
+                .requestMatchers("customers")
+                .hasAnyRole("regular-user","admin")
+                .requestMatchers("admin")
+                .hasRole("admin")
+                .anyRequest()
+                .authenticated();
+
+        http.addFilterAfter(myFilter, AuthorizationFilter.class);
+        http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(jwtAuthConverter);
+
+        return http.build();
+    }
+}
+
+```
+
+### Readiness Probe
+Defined Readiness Probe that will return success (200 HTTP Code) only if all keycloak configuration ( Roles, client scopes, permissions , Policies, and authorization scopes ) of configured keycloak instance are exists, otherwise, it will return Unavailable Service HTTP Code 503.
+Define it as A spring-boot actuator endpoint
+```java
+@Component
+@RestControllerEndpoint(id = "readiness")
+public class KeycloakReadiness {
+
+
+    private RestTemplate restTemplate;
+    @Value("${keycloak.parameters.adminUser}")
+    private String adminUser;
+    @Value("${keycloak.parameters.adminPassword}")
+    private String adminPass;
+
+    @Value("${keycloak.parameters.adminUserSpring}")
+    private String adminUserSpringRealm;
+    @Value("${keycloak.parameters.adminPasswordSpring}")
+    private String adminPassSpringRealm;
+    @Value("${keycloak.parameters.client-id}")
+    private String clientIdSpring;
+    @Value("${keycloak.parameters.client-password}")
+    private String clientIdSpringPassword;
+
+    @Value("${keycloak.parameters.serverAddress}")
+    private String keycloakAddress;
+    private List<KeycloakResource> keycloakResources;
+
+    private List<String> customClientScopes;
+
+    private List<String> customRoles;
+    private static final String grantType = "password";
+    private static final String clientId = "admin-cli";
+    private static final String tokenEndpointMasterRealm = "/realms/master/protocol/openid-connect/token";
+    private static final String tokenEndpointSpringRealm = "/realms/spring/protocol/openid-connect/token";
+
+    private static final String getClientScopesEndpoint = "/admin/realms/spring/client-scopes";
+    private static final String getClientsEndpoint = "/admin/realms/spring/clients";
+
+    private static final String getClientsBaseEndpoint = "/admin/realms/spring/clients";
+
+
+    @GetMapping
+    public @ResponseBody ResponseEntity readiness() {
+        boolean requiredPermissionsExists;
+        boolean clientRolesExists;
+        boolean customClientScopesExists;
+        ReadinessPayload readinessPayload = new ReadinessPayload();
+        String accessToken;
+        ResponseEntity result;
+        ResponseEntity<Map> response = getResponseFromTokenEndpoint(clientId, adminUser, adminPass, false);
+        if (response.getStatusCode().value() == HttpStatus.OK.value()) {
+            Map body = response.getBody();
+            accessToken = (String) body.get("access_token");
+            customClientScopesExists = checkClientScopesForRealm(accessToken, readinessPayload);
+            clientRolesExists = checkClientRoles(accessToken, readinessPayload);
+            response = getResponseFromTokenEndpoint(clientIdSpring, adminUserSpringRealm, adminPassSpringRealm, true);
+            body = response.getBody();
+            accessToken = (String) body.get("access_token");
+            requiredPermissionsExists = checkForPermissions(accessToken, readinessPayload);
+
+        } else {
+            requiredPermissionsExists = false;
+            clientRolesExists = false;
+            customClientScopesExists = false;
+        }
+        if (requiredPermissionsExists && clientRolesExists) {
+            readinessPayload.setStatus("Authorization Server Is Ready for Resources Server!");
+//            "Authorization Server Is Ready for Resources Server!"
+            result = ResponseEntity.ok(readinessPayload);
+        } else {
+            readinessPayload.setStatus("Keycloak is not Ready with all needed configuration");
+            result = ResponseEntity.status(HttpStatusCode.valueOf(503)).body(readinessPayload);
+        }
+        return result;
+    }
+   //.....
+   //.....
+   //ommited most of the code as it's not relevant for understanding , only to implementation    
+}
+```
+
 ## Running Pod in Openshift, with keycloak as side-car container
 
 1. We'll create configmap containing two files:
@@ -185,6 +414,12 @@ spec:
             value: admin
           - name: KC_HEALTH_ENABLED
             value: "true"
+          - name: KC_HOSTNAME
+            value: localhost
+          - name: KC_HOSTNAME_STRICT
+            value: "false"
+          - name: KC_HOSTNAME_PORT
+            value: "8080"            
 
 ```
 
