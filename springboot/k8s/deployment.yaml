@@ -20,7 +20,7 @@ spec:
             name: spring-realm
             defaultMode: 0777
       containers:
-      - image: quay.io/zgrinber/keycloak-integration-springboot:2
+      - image: quay.io/zgrinber/keycloak-integration-springboot:3
         imagePullPolicy: IfNotPresent
         name: keycloak-integration-springboot
         env:

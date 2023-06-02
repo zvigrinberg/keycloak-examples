@@ -271,14 +271,131 @@ export KEYCLOAK_URL=$(oc get route keycloak-app -o=jsonpath="{.spec.host}")
 export CLIENT_ID=spring-boot-app
 export CLIENT_SECRET=ZjvIwT5SuQ3wrqwW1kst4vxhCtvgcKo7
 ```
-12. Retrieve token for user someone( password is also someone ):
+12. Retrieve token for unprivileged user someone( password is also someone ):
 ```shell
 export USER=someone
 export PASSWORD=someone
 export TOKEN=$(curl -X POST 'http://'${KEYCLOAK_URL}'/realms/spring/protocol/openid-connect/token' --user ''$CLIENT_ID':'$CLIENT_SECRET'' --header 'content-type: application/x-www-form-urlencoded' --data-urlencode 'username='${USER}''  --data-urlencode 'password='${PASSWORD}'' --data-urlencode 'grant_type=password' | jq .access_token | tr -d "\"")
 ```
 
-13. Try to get some item using `/items/{id}` Endpoint, now with token of unprivileged token:
+13. Try to get some item using `/items/{id}` Endpoint, now with token of an unprivileged user:
 ```shell
-curl -i -X GET http://$SERVICE_URL/items/something --header 'Authorization: Bearer '$TOKEN''
+curl -i -X GET http://$SERVICE_URL/items/demo-item --header 'Authorization: Bearer '$TOKEN''
+```
+Output:
+```shell
+HTTP/1.1 403 
+x-content-type-options: nosniff
+x-xss-protection: 0
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: 0
+x-frame-options: DENY
+content-type: application/json
+transfer-encoding: chunked
+date: Tue, 30 May 2023 07:15:33 GMT
+set-cookie: 20166eafa2b6a12e0e8756143a6ce5a4=69b290c4fb3b88aa56878b13862bbcfd; path=/; HttpOnly
+
+{"message": " Keycloak Authorization Server blocked the access to the resource! " , "resource-name": "items"}
+```
+
+14. Retrieve token for privileged user my-user, which has permission to read/get items:
+```shell
+export USER=my-user
+export PASSWORD=password
+export TOKEN=$(curl -X POST 'http://'${KEYCLOAK_URL}'/realms/spring/protocol/openid-connect/token' --user ''$CLIENT_ID':'$CLIENT_SECRET'' --header 'content-type: application/x-www-form-urlencoded' --data-urlencode 'username='${USER}''  --data-urlencode 'password='${PASSWORD}'' --data-urlencode 'grant_type=password' | jq .access_token | tr -d "\"")
+```
+
+13. Try now to get the same item using `/items/{id}` Endpoint, with a token of my-user:
+```shell
+curl -i -X GET http://$SERVICE_URL/items/demo-item --header 'Authorization: Bearer '$TOKEN''
+```
+Output:
+```shell
+HTTP/1.1 200 
+x-content-type-options: nosniff
+x-xss-protection: 0
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: 0
+x-frame-options: DENY
+content-type: application/json
+transfer-encoding: chunked
+date: Tue, 30 May 2023 07:18:37 GMT
+set-cookie: 20166eafa2b6a12e0e8756143a6ce5a4=69b290c4fb3b88aa56878b13862bbcfd; path=/; HttpOnly
+
+{"id":"demo-item","name":"Super Item","type":"unnatural","price":1000}
+```
+
+14. Create now new item using the same token (of user my-user) :
+```shell
+ curl -i -X POST http://$SERVICE_URL/items  -d '{"id": "demo-item2",  "name": "special" , "type": "cpu", "price": 750 }' --header 'Authorization: Bearer '$TOKEN''
+```
+Output:
+```shell
+HTTP/1.1 403 
+x-content-type-options: nosniff
+x-xss-protection: 0
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: 0
+x-frame-options: DENY
+content-type: application/json
+transfer-encoding: chunked
+date: Fri, 02 Jun 2023 14:33:23 GMT
+set-cookie: 20166eafa2b6a12e0e8756143a6ce5a4=69b290c4fb3b88aa56878b13862bbcfd; path=/; HttpOnly
+```
+Note: We got 403 Because user "my-user" is not authorized to create items ( doesn't have permission to create items).
+
+15. Now Authenticate with administrator user in order to fetch from the token endpoint:
+```shell
+export USER=administrator
+export PASSWORD=admin
+export TOKEN=$(curl -X POST 'http://'${KEYCLOAK_URL}'/realms/spring/protocol/openid-connect/token' --user ''$CLIENT_ID':'$CLIENT_SECRET'' --header 'content-type: application/x-www-form-urlencoded' --data-urlencode 'username='${USER}''  --data-urlencode 'password='${PASSWORD}'' --data-urlencode 'grant_type=password' | jq .access_token | tr -d "\"")
+```
+
+16. Now using authorized token, Call the same POST call to create the item that my-user wasn't authorized to create:
+```shell
+curl -i -X POST http://$SERVICE_URL/items  -d '{"id": "demo-item2",  "name": "special" , "type": "cpu", "price": 750 }' --header 'Authorization: Bearer '$TOKEN'' -H 'Content-Type: application/json'
+```
+Output:
+```shell
+HTTP/1.1 201 
+location: http://springboot-app-keycloak-spring.apps.tem-lab01.fsi.rhecoeng.com/items/demo-item2
+x-content-type-options: nosniff
+x-xss-protection: 0
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: 0
+x-frame-options: DENY
+content-type: text/plain;charset=UTF-8
+content-length: 12
+date: Fri, 02 Jun 2023 14:43:01 GMT
+set-cookie: 20166eafa2b6a12e0e8756143a6ce5a4=69b290c4fb3b88aa56878b13862bbcfd; path=/; HttpOnly
+```
+
+Note: We got 201 because administrator user has permission to create items (also to read, delete and update items ).
+
+17. Using the token of the my-user again to get this new item from service:
+```shell
+export USER=my-user
+export PASSWORD=password
+export TOKEN=$(curl -X POST 'http://'${KEYCLOAK_URL}'/realms/spring/protocol/openid-connect/token' --user ''$CLIENT_ID':'$CLIENT_SECRET'' --header 'content-type: application/x-www-form-urlencoded' --data-urlencode 'username='${USER}''  --data-urlencode 'password='${PASSWORD}'' --data-urlencode 'grant_type=password' | jq .access_token | tr -d "\"")
+curl -i -X GET http://$SERVICE_URL/items/demo-item2 --header 'Authorization: Bearer '$TOKEN''
+```
+Output:
+```shell
+HTTP/1.1 200 
+x-content-type-options: nosniff
+x-xss-protection: 0
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: 0
+x-frame-options: DENY
+content-type: application/json
+transfer-encoding: chunked
+date: Fri, 02 Jun 2023 14:46:59 GMT
+set-cookie: 20166eafa2b6a12e0e8756143a6ce5a4=69b290c4fb3b88aa56878b13862bbcfd; path=/; HttpOnly
+
+{"id":"demo-item2","name":"special","type":"cpu","price":750}
 ```
